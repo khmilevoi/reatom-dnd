@@ -1,5 +1,7 @@
 import {
+  DependencyList,
   RefObject,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -9,20 +11,37 @@ import {
 
 import { Atom } from '@reatom/core';
 
-import { useDeferredCleanup } from '@/shared/lib/use-deferred-cleanup';
-import { useEvent } from '@/shared/lib/use-event';
-
 import { ReatomDnd } from './model.ts';
+import { PRIVATE_META } from './types.ts';
 import { DragCallbacks, DropCallbacks } from './utils';
+
+export { PRIVATE_META };
+
+const useDeferredCleanup = (
+  cleanup: () => void,
+  deps: DependencyList,
+): void => {
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    return () => {
+      timeoutRef.current = setTimeout(cleanup);
+    };
+  }, deps);
+};
 
 export const useNodeRef = <T extends HTMLElement>(): [
   RefObject<T | null>,
   (element: T | null) => void,
 ] => {
   const nodeRef = useRef<T | null>(null);
-  const setNodeRef = useEvent((element: T | null) => {
+  const setNodeRef = useCallback((element: T | null) => {
     nodeRef.current = element;
-  });
+  }, []);
 
   return [nodeRef, setNodeRef];
 };

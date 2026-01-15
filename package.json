@@ -10,6 +10,10 @@
 		".": {
 			"types": "./dist/index.d.mts",
 			"import": "./dist/index.mjs"
+		},
+		"./react": {
+			"types": "./dist/react.d.mts",
+			"import": "./dist/react.mjs"
 		}
 	},
 	"files": ["dist"],
@@ -20,10 +24,18 @@
 		"examples": "pnpm --filter reatom-dnd-examples dev"
 	},
 	"peerDependencies": {
-		"@reatom/core": ">=1000.0.0"
+		"@reatom/core": ">=1000.0.0",
+		"react": ">=18.0.0"
+	},
+	"peerDependenciesMeta": {
+		"react": {
+			"optional": true
+		}
 	},
 	"devDependencies": {
 		"@reatom/core": "^1000.1.0",
+		"@types/react": "^19.0.0",
+		"react": "^19.0.0",
 		"tsdown": "0.20.0-beta.3",
 		"typescript": "^5.9.3"
 	},
