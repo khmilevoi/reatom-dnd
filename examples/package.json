@@ -1,0 +1,25 @@
+{
+	"name": "reatom-dnd-examples",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"@reatom/core": "^1000.1.0",
+		"@reatom/react": "^1000.0.0",
+		"reatom-dnd": "link:.."
+	},
+	"devDependencies": {
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
+		"@vitejs/plugin-react": "^4.3.4",
+		"typescript": "^5.9.3",
+		"vite": "^6.0.0"
+	}
+}
