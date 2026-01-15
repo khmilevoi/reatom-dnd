@@ -1,0 +1,34 @@
+{
+	"name": "reatom-dnd",
+	"version": "0.0.1",
+	"description": "Drag and drop library for Reatom",
+	"type": "module",
+	"main": "./dist/index.mjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs"
+		}
+	},
+	"files": ["dist"],
+	"sideEffects": false,
+	"scripts": {
+		"build": "tsdown",
+		"prepublishOnly": "pnpm build"
+	},
+	"peerDependencies": {
+		"@reatom/core": ">=1000.0.0"
+	},
+	"devDependencies": {
+		"@reatom/core": "^1000.1.0",
+		"tsdown": "0.20.0-beta.3",
+		"typescript": "^5.9.3"
+	},
+	"dependencies": {
+		"mitt": "^3.0.1"
+	},
+	"keywords": ["reatom", "dnd", "drag-and-drop"],
+	"license": "MIT"
+}
