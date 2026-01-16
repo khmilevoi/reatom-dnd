@@ -19,7 +19,7 @@
 	"files": ["dist"],
 	"sideEffects": false,
 	"scripts": {
-		"start": "cd examples && pnpm install && pnpm dev",
+		"start": "pnpm install && pnpm --filter reatom-dnd-examples dev",
 		"build": "tsdown",
 		"prepublishOnly": "pnpm build",
 		"examples": "pnpm --filter reatom-dnd-examples dev"
