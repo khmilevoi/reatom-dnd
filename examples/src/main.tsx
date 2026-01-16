@@ -1,17 +1,8 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import './setup';
 
-function App() {
-	return (
-		<div style={{ padding: '2rem', fontFamily: 'system-ui, sans-serif' }}>
-			<h1>reatom-dnd Examples</h1>
-			<p>Demo coming soon...</p>
-		</div>
-	)
-}
+import { createRoot } from 'react-dom/client';
 
-createRoot(document.getElementById('root')!).render(
-	<StrictMode>
-		<App />
-	</StrictMode>,
-)
+import './index.css';
+import { DndDemo } from './demo/DndDemo';
+
+createRoot(document.getElementById('root')!).render(<DndDemo />);
