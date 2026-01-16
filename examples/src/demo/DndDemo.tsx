@@ -11,7 +11,7 @@ export const DndDemo = reatomComponent(() => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
-      <div className="flex flex-wrap gap-2 h-screen overflow-auto">
+      <div className="flex flex-wrap gap-2 h-100p">
         {zones.map((zoneId) => (
           <DropZone key={zoneId} zoneId={zoneId} hasItem={zone === zoneId} />
         ))}
