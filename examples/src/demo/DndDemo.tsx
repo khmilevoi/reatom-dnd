@@ -7,10 +7,15 @@ import { DragOverlay } from './DragOverlay';
 export const DndDemo = reatomComponent(() => {
   const zone = currentZoneAtom();
 
+  const zones = Array.from({ length: 100 }, (_, i) => i);
+
   return (
-    <div className="flex min-h-screen items-center justify-center gap-8 bg-gray-100 p-8">
-      <DropZone zoneId="left" hasItem={zone === 'left'} />
-      <DropZone zoneId="right" hasItem={zone === 'right'} />
+    <div className="min-h-screen bg-gray-100 p-4">
+      <div className="flex flex-wrap gap-2 h-screen overflow-auto">
+        {zones.map((zoneId) => (
+          <DropZone key={zoneId} zoneId={zoneId} hasItem={zone === zoneId} />
+        ))}
+      </div>
       <DragOverlay />
     </div>
   );

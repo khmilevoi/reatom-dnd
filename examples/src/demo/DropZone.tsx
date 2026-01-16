@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { reatomComponent } from '@reatom/react';
 import { useDraggable, useDroppable } from 'reatom-dnd/react';
 import { Move, Maximize2 } from 'lucide-react';
@@ -46,18 +47,35 @@ type DropZoneProps = {
 export const DropZone = reatomComponent<DropZoneProps>(
   ({ zoneId, hasItem }) => {
     const { setNodeRef, isActive } = useDroppable(dnd, {
-      id: zoneId,
+      id: String(zoneId),
       context: zoneId,
     });
 
+    const active = isActive();
+    const elementRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+      const element = elementRef.current;
+      if (element) {
+        element.classList.add('flash-animation');
+        const timeout = setTimeout(() => {
+          element.classList.remove('flash-animation');
+        }, 300);
+        return () => clearTimeout(timeout);
+      }
+    }, [hasItem, active]);
+
     return (
       <div
-        id={zoneId}
-        ref={setNodeRef}
+        id={String(zoneId)}
+        ref={(node) => {
+          elementRef.current = node;
+          setNodeRef(node);
+        }}
         className={cn(
           'flex h-72 w-72 items-center justify-center rounded-2xl border-2 border-dashed bg-white',
           'transition-all duration-200',
-          isActive() ? 'border-primary bg-primary/5' : 'border-gray-300',
+          active ? 'border-primary bg-primary/5' : 'border-gray-300',
         )}
       >
         {hasItem ? <DraggableItem /> : <DropPlaceholder />}
