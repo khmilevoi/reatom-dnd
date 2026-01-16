@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 
-import { Atom } from '@reatom/core';
+import { Atom, log } from '@reatom/core';
 
 import { ReatomDnd } from './model.ts';
 import { PRIVATE_META } from './types.ts';

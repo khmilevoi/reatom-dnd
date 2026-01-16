@@ -121,32 +121,16 @@ export const reatomDnd = <DragContext, DropContext>({
   };
 
   const findTargetModel = (target: HTMLElement) => {
-    const directId = registry.getDragId(target);
+    const id = registry.findAncestorDragId(target);
 
-    if (directId) {
-      const model = dragCache.get(directId);
+    if (id) {
+      const model = dragCache.get(id);
       if (model && !peek(model.disabled)) {
         return model;
       }
     }
 
-    for (const model of dragCache.values()) {
-      const node = peek(model.node);
-      const activator = peek(model.activatorNode);
-      const disabled = peek(model.disabled);
-
-      if (!registry.isValidDragNode(node, model.id) || disabled) {
-        continue;
-      }
-
-      const targetNode = activator ?? node;
-
-      if (!targetNode || !targetNode.contains(target)) {
-        continue;
-      }
-
-      return model;
-    }
+    return null;
   };
 
   effect(() => {
@@ -359,7 +343,12 @@ export const reatomDnd = <DragContext, DropContext>({
             if (state) registry.registerDrag(state, id);
           }),
         ),
-        activatorNode: atom(null, `${name}.draggable.${id}.activatorNode`),
+        activatorNode: atom(null, `${name}.draggable.${id}.activatorNode`).extend(
+          withChangeHook((state, prev) => {
+            if (prev) registry.unregisterDrag(prev, id);
+            if (state) registry.registerDrag(state, id);
+          }),
+        ),
         rect: makeRect(name, id, new DOMRect()),
         disabled: reatomBoolean(false, `${name}.draggable.${id}.disabled`),
         onDragStart: listeners.onDragStart,

@@ -8,6 +8,8 @@ export type NodeRegistry = {
   getDropId: (el: HTMLElement) => string | undefined;
   getId: (el: HTMLElement) => string | undefined;
 
+  findAncestorDragId: (target: HTMLElement | null) => string | undefined;
+
   isValidDragNode: (node: HTMLElement | null, id: string) => boolean;
   isValidDropNode: (node: HTMLElement | null, id: string) => boolean;
   isValid: (node: HTMLElement | null, id: string) => boolean;
@@ -41,6 +43,18 @@ export const makeNodeRegistry = (): NodeRegistry => {
     getDragId: (el) => dragMap.get(el),
     getDropId: (el) => dropMap.get(el),
     getId: (el) => dragMap.get(el) ?? dropMap.get(el),
+
+    findAncestorDragId: (target) => {
+      let current: HTMLElement | null = target;
+
+      while (current) {
+        const id = dragMap.get(current);
+        if (id) return id;
+        current = current.parentElement;
+      }
+
+      return undefined;
+    },
 
     isValidDragNode: (node, id) =>
       !!node && node.isConnected && dragMap.get(node) === id,
