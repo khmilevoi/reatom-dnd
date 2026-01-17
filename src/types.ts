@@ -30,9 +30,9 @@ export type DropMeta = BaseMeta<'drop'>;
 
 export type ReatomDndOptions<DragContext, DropContext> = {
   name: string;
-  sensors: Sensor[];
-  intersectionStrategy: IntersectionStrategy;
-  modifiers: PositionModifier[];
+  sensors?: Sensor[];
+  intersectionStrategy?: IntersectionStrategy;
+  modifiers?: PositionModifier[];
   onDrop?: OnDropCallback<DragContext, DropContext>;
   onDropEnter?: (dragContext: DragContext, dropContext: DropContext) => void;
   onDropLeave?: (dragContext: DragContext, dropContext: DropContext) => void;

@@ -17,23 +17,6 @@ import { DragCallbacks, DropCallbacks } from './utils';
 
 export { PRIVATE_META };
 
-const useDeferredCleanup = (
-  cleanup: () => void,
-  deps: DependencyList,
-): void => {
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    return () => {
-      timeoutRef.current = setTimeout(cleanup);
-    };
-  }, deps);
-};
-
 export const useNodeRef = <T extends HTMLElement>(): [
   RefObject<T | null>,
   (element: T | null) => void,
@@ -85,21 +68,19 @@ export const useDraggable = <DragContext, DropContext>(
     [id, initialContext, model],
   );
 
-  useDeferredCleanup(() => dragModel.dispose(), [dragModel]);
+  useEffect(() => {
+    dragModel().context.set(context);
+  }, [context, dragModel()]);
 
   useEffect(() => {
-    dragModel.context.set(context);
-  }, [context, dragModel.context]);
-
-  useEffect(() => {
-    dragModel.disabled.set(!!isDisabled);
-  }, [dragModel.disabled, isDisabled]);
+    dragModel().disabled.set(!!isDisabled);
+  }, [dragModel(), isDisabled]);
 
   useEffect(() => {
     const unsubs = [
-      onDragStart.current && dragModel.onDragStart(onDragStart.current),
-      onDragEnd.current && dragModel.onDragEnd(onDragEnd.current),
-      onDragCancel.current && dragModel.onDragCancel(onDragCancel.current),
+      onDragStart.current && dragModel().onDragStart(onDragStart.current),
+      onDragEnd.current && dragModel().onDragEnd(onDragEnd.current),
+      onDragCancel.current && dragModel().onDragCancel(onDragCancel.current),
     ];
 
     return () => {
@@ -109,24 +90,24 @@ export const useDraggable = <DragContext, DropContext>(
 
   useLayoutEffect(() => {
     if (node) {
-      return node.subscribe((state) => dragModel.node.set(state));
+      return node.subscribe((state) => dragModel().node.set(state));
     } else {
-      dragModel.node.set(nodeRef.current);
+      dragModel().node.set(nodeRef.current);
     }
-  }, [dragModel.node, node, nodeRef]);
+  }, [dragModel(), node, nodeRef]);
 
   useLayoutEffect(() => {
     if (activatorNode) {
       return activatorNode.subscribe((state) =>
-        dragModel.activatorNode.set(state),
+        dragModel().activatorNode.set(state),
       );
     } else {
-      dragModel.activatorNode.set(activatorNodeRef.current);
+      dragModel().activatorNode.set(activatorNodeRef.current);
     }
-  }, [dragModel.activatorNode, activatorNode, activatorNodeRef]);
+  }, [dragModel(), activatorNode, activatorNodeRef]);
 
   return {
-    ...dragModel,
+    ...dragModel(),
     setNodeRef,
     setActivatorNodeRef,
   };
@@ -168,21 +149,19 @@ export const useDroppable = <DragContext, DropContext>(
     [id, initialContext, model],
   );
 
-  useDeferredCleanup(() => dropModel.dispose(), [dropModel]);
+  useEffect(() => {
+    dropModel().context.set(context);
+  }, [context, dropModel()]);
 
   useEffect(() => {
-    dropModel.context.set(context);
-  }, [context, dropModel.context]);
-
-  useEffect(() => {
-    dropModel.disabled.set(!!isDisabled);
-  }, [dropModel.disabled, isDisabled]);
+    dropModel().disabled.set(!!isDisabled);
+  }, [dropModel(), isDisabled]);
 
   useEffect(() => {
     const unsubs = [
-      onDrop.current && dropModel.onDrop(onDrop.current),
-      onDropEnter.current && dropModel.onDropEnter(onDropEnter.current),
-      onDropLeave.current && dropModel.onDropLeave(onDropLeave.current),
+      onDrop.current && dropModel().onDrop(onDrop.current),
+      onDropEnter.current && dropModel().onDropEnter(onDropEnter.current),
+      onDropLeave.current && dropModel().onDropLeave(onDropLeave.current),
     ];
 
     return () => {
@@ -192,14 +171,14 @@ export const useDroppable = <DragContext, DropContext>(
 
   useLayoutEffect(() => {
     if (node) {
-      return node.subscribe((state) => dropModel.node.set(state));
+      return node.subscribe((state) => dropModel().node.set(state));
     } else {
-      dropModel.node.set(nodeRef.current);
+      dropModel().node.set(nodeRef.current);
     }
-  }, [dropModel.node, node, nodeRef]);
+  }, [dropModel(), node, nodeRef]);
 
   return {
-    ...dropModel,
+    ...dropModel(),
     setNodeRef,
   };
 };

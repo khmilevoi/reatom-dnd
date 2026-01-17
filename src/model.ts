@@ -9,6 +9,8 @@ import {
   rAF,
   reatomBoolean,
   withChangeHook,
+  withConnectHook,
+  withDisconnectHook,
   wrap,
 } from '@reatom/core';
 
@@ -39,14 +41,16 @@ import {
   RectState,
   RectWithId,
 } from './utils';
+import { mouseSensor } from './sensors.ts';
+import { rectangleIntersection } from './strategies.ts';
 
 let refCounter = 0;
 
 export const reatomDnd = <DragContext, DropContext>({
   name,
-  sensors,
-  intersectionStrategy: _intersectionStrategy,
-  modifiers,
+  sensors = [mouseSensor()],
+  intersectionStrategy: _intersectionStrategy = rectangleIntersection,
+  modifiers = [],
   onDrop,
   onDropEnter,
   onDropLeave,
@@ -355,7 +359,7 @@ export const reatomDnd = <DragContext, DropContext>({
     draggable({
       id,
       initialContext,
-    }: CreateDraggable<DragContext>): DragModel<DragContext> {
+    }: CreateDraggable<DragContext>) {
       const internalId = `${refCounter++}:${id}`;
 
       const listeners = makeDragListeners<DragContext>();
@@ -396,6 +400,7 @@ export const reatomDnd = <DragContext, DropContext>({
           `${name}.draggable.${id}.isActive`,
         ),
         dispose: () => {
+          console.log('dispose draggable', id);
           dragListeners.get(model)?.clear();
           dragListeners.delete(model);
 
@@ -410,14 +415,12 @@ export const reatomDnd = <DragContext, DropContext>({
 
       const unsub = makeResizeEffect(model.node, model.rect);
 
-      if (cache) {
-        cache.dispose();
-      }
-
-      dragCache.set(id, model);
-      dragListeners.set(model, listeners);
-
-      return model;
+      return atom(model).extend(
+        withConnectHook(() => {
+          dragCache.set(id, model);
+          dragListeners.set(model, listeners);
+        }),
+        withDisconnectHook(() => model.dispose()));
     },
     droppable({ id, initialContext }: CreateDroppable<DropContext>) {
       const internalId = `${refCounter++}:${id}`;
@@ -454,6 +457,7 @@ export const reatomDnd = <DragContext, DropContext>({
           `${name}.droppable.${id}.isActive`,
         ),
         dispose: () => {
+          console.log('dispose droppable', id);
           dropListeners.get(model)?.clear();
           dropListeners.delete(model);
 
@@ -468,14 +472,14 @@ export const reatomDnd = <DragContext, DropContext>({
 
       const unsub = makeResizeEffect(model.node, model.rect);
 
-      if (cache) {
-        cache.dispose();
-      }
-
-      dropCache.set(id, model);
-      dropListeners.set(model, listeners);
-
-      return model;
+      return atom(model).extend(
+        withConnectHook(() => {
+          dropCache.set(id, model);
+          dropListeners.set(model, listeners);
+        }),
+        withDisconnectHook(() => {
+          model.dispose();
+        }));
     },
   };
 };
