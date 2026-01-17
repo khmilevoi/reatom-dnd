@@ -113,14 +113,12 @@ export type PositionModifier = (args: {
   overlayRect: Rect | null;
 }) => Position;
 
-export const isDraggable = <DragContext, DropContext>(
-  model: DragModel<DragContext> | DropModel<DragContext, DropContext>,
-): model is DragModel<DragContext> => {
-  return model[PRIVATE_META].type === 'drag';
-};
-
-export const isDroppable = <DragContext, DropContext>(
-  model: DragModel<DragContext> | DropModel<DragContext, DropContext>,
-): model is DropModel<DragContext, DropContext> => {
-  return model[PRIVATE_META].type === 'drop';
+export type ReatomDnd<DragContext, DropContext> = {
+  dragging: Atom<DragModel<DragContext> | null>;
+  dropping: Atom<DropModel<DragContext, DropContext> | null>;
+  isDragging: Computed<boolean>;
+  isDroppable: Computed<boolean>;
+  overlay: OverlayModel;
+  draggable: (params: CreateDraggable<DragContext>) => Atom<DragModel<DragContext>>;
+  droppable: (params: CreateDroppable<DropContext>) => Atom<DropModel<DragContext, DropContext>>;
 };

@@ -20,6 +20,7 @@ import {
   DragModel,
   DropModel,
   PRIVATE_META,
+  ReatomDnd,
   ReatomDndOptions,
 } from './types.ts';
 import {
@@ -57,7 +58,7 @@ export const reatomDnd = <DragContext, DropContext>({
   onDragStart,
   onDragEnd,
   onDragCancel,
-}: ReatomDndOptions<DragContext, DropContext>) => {
+}: ReatomDndOptions<DragContext, DropContext>): ReatomDnd<DragContext, DropContext> => {
   const dragCache = new Map<string, DragModel<DragContext>>();
   const dropCache = new Map<string, DropModel<DragContext, DropContext>>();
 
@@ -481,7 +482,3 @@ export const reatomDnd = <DragContext, DropContext>({
     },
   };
 };
-
-export type ReatomDnd<DragContext, DropContext> = ReturnType<
-  typeof reatomDnd<DragContext, DropContext>
->;

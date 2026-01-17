@@ -1,4 +1,5 @@
 export * from './composites.ts';
+export * from './guards.ts';
 export * from './listeners.ts';
 export * from './overlay.ts';
 export * from './rect.ts';
