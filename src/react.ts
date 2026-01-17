@@ -195,9 +195,9 @@ export const useDraggable = <DragContext, DropContext>(
 
   useLayoutEffect(() => {
     if (node) {
-      return node.subscribe((state) => dragModel().node.set(state));
+      return node.subscribe((state) => dragModel().elementNode.set(state));
     } else {
-      dragModel().node.set(nodeRef.current);
+      dragModel().elementNode.set(nodeRef.current);
     }
   }, [dragModel(), node, nodeRef]);
 

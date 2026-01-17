@@ -9,6 +9,7 @@ import {
   atom,
   computed,
   effect,
+  ifChanged,
   onEvent,
   peek,
   rAF,
@@ -441,27 +442,20 @@ export const reatomDnd = <DragContext, DropContext>({
       const model: DragModel<DragContext> = {
         id,
         context: atom(initialContext, `${name}.draggable.${id}.context`),
-        node: atom(
-          cache?.node() ?? null,
+        node: computed(
+          () => model.activatorNode() ?? model.elementNode() ?? null,
           `${name}.draggable.${id}.node`,
-        ).extend(
+        ),
+        elementNode: atom(cache?.elementNode() ?? null, `${name}.draggable.${id}.elementNode`).extend(
           withChangeHook((state, prev) => {
             if (prev) {
-              registry.unregisterDrag(prev, id);
               scrollParentCache.unregister(prev, id);
             }
             if (state) {
-              registry.registerDrag(state, id);
               scrollParentCache.register(state, id);
             }
-          }),
-        ),
-        activatorNode: atom(null, `${name}.draggable.${id}.activatorNode`).extend(
-          withChangeHook((state, prev) => {
-            if (prev) registry.unregisterDrag(prev, id);
-            if (state) registry.registerDrag(state, id);
-          }),
-        ),
+          })),
+        activatorNode: atom(cache?.activatorNode() ?? null, `${name}.draggable.${id}.activatorNode`),
         rect: makeRect(name, id, new DOMRect()),
         disabled: reatomBoolean(false, `${name}.draggable.${id}.disabled`),
         onDragStart: listeners.onDragStart,
@@ -479,12 +473,27 @@ export const reatomDnd = <DragContext, DropContext>({
             dragCache.delete(id);
           }
 
-          unsub();
+          unsubRegister();
+          unsubResize();
         },
         [PRIVATE_META]: { type: 'drag', internalId },
       };
 
-      const unsub = makeResizeEffect(model.node, model.rect);
+      const unsubRegister = effect(() => {
+        const node = model.node();
+
+        if (node) {
+          registry.registerDrag(node, id);
+        }
+
+        return () => {
+          if (node) {
+            registry.unregisterDrag(node, id);
+          }
+        }
+      })
+
+      const unsubResize = makeResizeEffect(model.elementNode, model.rect);
 
       return atom(model).extend(
         withConnectHook(() => {

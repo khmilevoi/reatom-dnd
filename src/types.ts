@@ -226,13 +226,15 @@ type BaseModel<Context, Meta> = {
  *
  * @category Models
  */
-export type DragModel<DragContext> = BaseModel<DragContext, DragMeta> &
+export type DragModel<DragContext> = Omit<BaseModel<DragContext, DragMeta>, 'node'> &
   DragEvents<DragContext> & {
+    node: Computed<HTMLElement | null>;
     /**
      * Atom holding reference to the activator element.
      * If set, only this element will trigger drag start instead of the main node.
      */
     activatorNode: Atom<HTMLElement | null>;
+    elementNode: Atom<HTMLElement | null>;
   };
 
 /**
