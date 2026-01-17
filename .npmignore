@@ -1,0 +1,18 @@
+# Source files
+src/
+examples/
+
+# Config files
+tsconfig.json
+tsdown.config.ts
+pnpm-workspace.yaml
+pnpm-lock.yaml
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+*.log
+.DS_Store
+node_modules/
