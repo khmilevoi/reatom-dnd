@@ -1,0 +1,31 @@
+{
+	"$schema": "https://typedoc.org/schema.json",
+	"entryPoints": ["src/index.ts", "src/react.ts"],
+	"out": "docs",
+	"plugin": [],
+	"exclude": [
+		"**/node_modules/**",
+		"**/examples/**",
+		"**/dist/**",
+		"**/*.test.ts",
+		"**/utils/**"
+	],
+	"excludePrivate": true,
+	"excludeProtected": true,
+	"excludeExternals": true,
+	"readme": "README.md",
+	"name": "reatom-dnd",
+	"includeVersion": true,
+	"navigation": {
+		"includeCategories": true,
+		"includeGroups": true
+	},
+	"sort": ["source-order"],
+	"kindSortOrder": [
+		"Function",
+		"TypeAlias",
+		"Interface",
+		"Class",
+		"Variable"
+	]
+}

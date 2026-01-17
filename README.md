@@ -104,6 +104,8 @@ const DragOverlay = () => {
 
 See the [examples](./examples) directory for a complete demo.
 
+Try it online: [StackBlitz](https://stackblitz.com/~/github.com/khmilevoi/reatom-dnd)
+
 ## License
 
 MIT

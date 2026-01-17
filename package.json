@@ -22,7 +22,9 @@
 		"start": "pnpm --filter reatom-dnd-examples dev",
 		"build": "tsdown",
 		"prepublishOnly": "pnpm build",
-		"examples": "pnpm --filter reatom-dnd-examples dev"
+		"examples": "pnpm --filter reatom-dnd-examples dev",
+		"docs": "typedoc",
+		"docs:serve": "npx http-server docs -o"
 	},
 	"peerDependencies": {
 		"@reatom/core": ">=1000.0.0",
@@ -38,6 +40,7 @@
 		"@types/react": "^19.0.0",
 		"react": "^19.0.0",
 		"tsdown": "0.20.0-beta.3",
+		"typedoc": "^0.27.5",
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {
