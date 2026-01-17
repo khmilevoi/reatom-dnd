@@ -23,6 +23,7 @@ import {
 import {
   DragListeners,
   DropListeners,
+  initScrollTracker,
   makeDragListeners,
   makeDropListeners,
   makeModifiers,
@@ -31,6 +32,9 @@ import {
   makePosition,
   makeRect,
   makeResizeObserver,
+  makeScrollBatcher,
+  makeScrollParentCache,
+  makeScrollTracker,
   makeSensors,
   RectState,
   RectWithId,
@@ -63,6 +67,7 @@ export const reatomDnd = <DragContext, DropContext>({
   >();
 
   const registry = makeNodeRegistry();
+  const scrollParentCache = makeScrollParentCache();
 
   const dragging = atom<DragModel<DragContext> | null>(
     null,
@@ -77,8 +82,6 @@ export const reatomDnd = <DragContext, DropContext>({
   const isDroppable = computed(() => dropping() !== null);
 
   const pointer = makePosition(`${name}.pointer`);
-  const lastScroll = makePosition(`${name}.lastScroll`);
-  const scroll = makePosition(`${name}.scroll`);
 
   const overlay = makeOverlay(name);
 
@@ -133,25 +136,65 @@ export const reatomDnd = <DragContext, DropContext>({
     return null;
   };
 
+  const scrollTracker = makeScrollTracker();
+
+  const applyScrollDeltas = (deltas: Array<{ deltaX: number; deltaY: number; container: HTMLElement | Document; isDocument: boolean }>) => {
+    for (const { deltaX, deltaY, container, isDocument } of deltas) {
+      const affectedIds = scrollParentCache.getIdsInContainer(container);
+
+      const dragModel = peek(dragging);
+      if (dragModel) {
+        if (isDocument || affectedIds?.has(dragModel.id)) {
+          dragModel.rect.updateWithOffset(deltaX, deltaY);
+        }
+      }
+
+      for (const dropModel of dropCache.values()) {
+        const dropNode = peek(dropModel.node);
+        if (
+          dropNode &&
+          registry.isValidDropNode(dropNode, dropModel.id) &&
+          !peek(dropModel.disabled) &&
+          (isDocument || affectedIds?.has(dropModel.id))
+        ) {
+          dropModel.rect.updateWithOffset(deltaX, deltaY);
+        }
+      }
+    }
+  };
+
+  const scrollBatcher = makeScrollBatcher(applyScrollDeltas);
+
   effect(() => {
     const unsubScroll = onEvent(
-      window,
+      document,
       'scroll',
-      () => {
+      (event) => {
         if (!isDragging()) {
           return;
         }
 
-        scroll.set({
-          x: window.scrollX,
-          y: window.scrollY,
-        });
+        const target = event.target;
+        if (!target) return;
+
+        const isDocument = target === document || target === document.documentElement;
+        const currentTop = isDocument ? window.scrollY : (target as HTMLElement).scrollTop;
+        const currentLeft = isDocument ? window.scrollX : (target as HTMLElement).scrollLeft;
+
+        const { deltaX, deltaY } = scrollTracker.getDelta(target, currentTop, currentLeft);
+
+        if (deltaX !== 0 || deltaY !== 0) {
+          const scrollContainer = isDocument ? document : target as HTMLElement;
+          scrollBatcher.addDelta(scrollContainer, deltaX, deltaY, isDocument);
+        }
       },
-      { passive: true },
+      { passive: true, capture: true },
     );
 
     const unsubDragStop = sensor.onDragEnd(
       wrap(() => {
+        scrollBatcher.flush();
+
         const dragModel = dragging();
         const dropModel = dropping();
 
@@ -183,6 +226,8 @@ export const reatomDnd = <DragContext, DropContext>({
 
     const unsubCancel = sensor.onCancel(
       wrap(() => {
+        scrollBatcher.clear();
+
         const dragModel = dragging();
 
         if (dragModel) {
@@ -204,7 +249,7 @@ export const reatomDnd = <DragContext, DropContext>({
         }
 
         pointer.set(event.position);
-        lastScroll.set(scroll());
+        initScrollTracker(scrollTracker, event.target);
 
         const dropModels = dropCache.values();
 
@@ -245,16 +290,8 @@ export const reatomDnd = <DragContext, DropContext>({
 
     rAF();
 
-    const scrollPos = peek(scroll);
-    const lastScrollPos = peek(lastScroll);
-    const deltaX = scrollPos.x - lastScrollPos.x;
-    const deltaY = scrollPos.y - lastScrollPos.y;
     const pointerPos = peek(pointer);
     const overlayRectValue = peek(overlay.rect);
-
-    if (deltaX !== 0 || deltaY !== 0) {
-      dragModel.rect.updateWithOffset(deltaX, deltaY);
-    }
 
     const dropModels = dropCache.values();
     const activeDropRects: RectWithId[] = [];
@@ -267,10 +304,6 @@ export const reatomDnd = <DragContext, DropContext>({
         registry.isValidDropNode(dropNode, dropModel.id) &&
         !peek(dropModel.disabled)
       ) {
-        if (deltaX !== 0 || deltaY !== 0) {
-          dropModel.rect.updateWithOffset(deltaX, deltaY);
-        }
-
         activeDropRects.push(peek(dropModel.rect));
       }
     }
@@ -311,8 +344,6 @@ export const reatomDnd = <DragContext, DropContext>({
     } else if (!nextDropModel) {
       dropping.set(null);
     }
-
-    lastScroll.set(scrollPos);
   }, `${name}.mainEffect`);
 
   return {
@@ -339,8 +370,14 @@ export const reatomDnd = <DragContext, DropContext>({
           `${name}.draggable.${id}.node`,
         ).extend(
           withChangeHook((state, prev) => {
-            if (prev) registry.unregisterDrag(prev, id);
-            if (state) registry.registerDrag(state, id);
+            if (prev) {
+              registry.unregisterDrag(prev, id);
+              scrollParentCache.unregister(prev, id);
+            }
+            if (state) {
+              registry.registerDrag(state, id);
+              scrollParentCache.register(state, id);
+            }
           }),
         ),
         activatorNode: atom(null, `${name}.draggable.${id}.activatorNode`).extend(
@@ -397,8 +434,14 @@ export const reatomDnd = <DragContext, DropContext>({
           `${name}.droppable.${id}.node`,
         ).extend(
           withChangeHook((state, prev) => {
-            if (prev) registry.unregisterDrop(prev, id);
-            if (state) registry.registerDrop(state, id);
+            if (prev) {
+              registry.unregisterDrop(prev, id);
+              scrollParentCache.unregister(prev, id);
+            }
+            if (state) {
+              registry.registerDrop(state, id);
+              scrollParentCache.register(state, id);
+            }
           }),
         ),
         rect: makeRect(name, id, new DOMRect()),
