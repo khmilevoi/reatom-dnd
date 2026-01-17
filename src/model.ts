@@ -400,7 +400,6 @@ export const reatomDnd = <DragContext, DropContext>({
           `${name}.draggable.${id}.isActive`,
         ),
         dispose: () => {
-          console.log('dispose draggable', id);
           dragListeners.get(model)?.clear();
           dragListeners.delete(model);
 
@@ -457,7 +456,6 @@ export const reatomDnd = <DragContext, DropContext>({
           `${name}.droppable.${id}.isActive`,
         ),
         dispose: () => {
-          console.log('dispose droppable', id);
           dropListeners.get(model)?.clear();
           dropListeners.delete(model);
 
