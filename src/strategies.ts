@@ -1,9 +1,37 @@
+/**
+ * Built-in intersection strategies for determining drop zone collisions.
+ * @module strategies
+ */
+
 import {
   CornerAggregation,
   IntersectionCollision,
   IntersectionStrategy,
 } from './types.ts';
 
+/**
+ * Intersection strategy that finds the closest drop zone by center distance.
+ *
+ * Calculates the Euclidean distance from the current pointer position to
+ * the center of each drop zone. Zones are sorted by distance (closest first).
+ *
+ * @remarks
+ * This strategy is useful for:
+ * - List-based layouts where items are dropped between zones
+ * - Scenarios where the pointer position matters more than overlay position
+ *
+ * @example
+ * ```ts
+ * import { reatomDnd, closestCenter } from 'reatom-dnd';
+ *
+ * const dnd = reatomDnd({
+ *   name: 'sortable-list',
+ *   intersectionStrategy: closestCenter,
+ * });
+ * ```
+ *
+ * @category Strategies
+ */
 export const closestCenter: IntersectionStrategy = ({
   droppingRects,
   pointer,
@@ -27,6 +55,37 @@ export const closestCenter: IntersectionStrategy = ({
   return collisions.sort((a, b) => a.value - b.value);
 };
 
+/**
+ * Factory function for creating corner-based intersection strategies.
+ *
+ * Calculates distances between corresponding corners of the overlay and
+ * drop zones (top-left to top-left, top-right to top-right, etc.).
+ * The final collision value is determined by the aggregation method.
+ *
+ * @param aggregation - Method for combining the four corner distances:
+ *   - `'sum'` - Sum of all corner distances (default)
+ *   - `'min'` - Minimum corner distance (most aligned corner)
+ *   - `'average'` - Average of all corner distances
+ *
+ * @returns An intersection strategy function
+ *
+ * @example
+ * ```ts
+ * import { reatomDnd, createClosestCorner } from 'reatom-dnd';
+ *
+ * // Use minimum corner distance for better alignment detection
+ * const dnd = reatomDnd({
+ *   name: 'grid',
+ *   intersectionStrategy: createClosestCorner('min'),
+ * });
+ * ```
+ *
+ * @see {@link closestCorner} - Pre-configured with 'sum' aggregation
+ * @see {@link closestCornerMin} - Pre-configured with 'min' aggregation
+ * @see {@link closestCornerAverage} - Pre-configured with 'average' aggregation
+ *
+ * @category Strategies
+ */
 export const createClosestCorner = (
   aggregation: CornerAggregation = 'sum',
 ): IntersectionStrategy => {
@@ -76,10 +135,60 @@ export const createClosestCorner = (
   };
 };
 
+/**
+ * Corner-based strategy using sum of all corner distances.
+ *
+ * @see {@link createClosestCorner} for more options
+ * @category Strategies
+ */
 export const closestCorner = createClosestCorner('sum');
+
+/**
+ * Corner-based strategy using the minimum corner distance.
+ * Useful when you want to detect the most aligned corner.
+ *
+ * @see {@link createClosestCorner} for more options
+ * @category Strategies
+ */
 export const closestCornerMin = createClosestCorner('min');
+
+/**
+ * Corner-based strategy using the average of all corner distances.
+ *
+ * @see {@link createClosestCorner} for more options
+ * @category Strategies
+ */
 export const closestCornerAverage = createClosestCorner('average');
 
+/**
+ * Intersection strategy based on rectangle overlap area.
+ *
+ * Calculates the intersection area between the overlay and each drop zone,
+ * returning the ratio of intersection to overlay area. Zones are sorted
+ * by overlap ratio (highest overlap first).
+ *
+ * @remarks
+ * This is the **default strategy** used by {@link reatomDnd}.
+ *
+ * Best suited for:
+ * - Grid layouts where visual overlap is important
+ * - Drag-and-drop file managers
+ * - Any scenario where the overlay size matters
+ *
+ * Returns an empty array if the overlay has zero area.
+ *
+ * @example
+ * ```ts
+ * import { reatomDnd, rectangleIntersection } from 'reatom-dnd';
+ *
+ * const dnd = reatomDnd({
+ *   name: 'file-manager',
+ *   intersectionStrategy: rectangleIntersection, // This is the default
+ * });
+ * ```
+ *
+ * @category Strategies
+ */
 export const rectangleIntersection: IntersectionStrategy = ({
   overlayRect,
   droppingRects,

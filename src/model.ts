@@ -1,3 +1,8 @@
+/**
+ * Core module for creating drag-and-drop systems with Reatom.
+ * @module model
+ */
+
 import {
   action,
   Atom,
@@ -47,6 +52,72 @@ import { rectangleIntersection } from './strategies.ts';
 
 let refCounter = 0;
 
+/**
+ * Creates a reactive drag-and-drop system powered by Reatom.
+ *
+ * This is the main entry point for creating a DnD system. It returns an object
+ * with reactive state atoms and factory functions for creating draggable and
+ * droppable elements.
+ *
+ * @template DragContext - Type of custom data attached to draggable elements
+ * @template DropContext - Type of custom data attached to drop zones
+ *
+ * @param options - Configuration options for the DnD system
+ * @returns A {@link ReatomDnd} object with state and factories
+ *
+ * @example Basic usage
+ * ```ts
+ * import { reatomDnd } from 'reatom-dnd';
+ *
+ * type TaskData = { id: string; title: string };
+ * type ColumnData = { columnId: string };
+ *
+ * const dnd = reatomDnd<TaskData, ColumnData>({
+ *   name: 'kanban',
+ *   onDrop: (dragCtx, dropCtx) => {
+ *     moveTask(dragCtx.id, dropCtx.columnId);
+ *   },
+ * });
+ * ```
+ *
+ * @example With custom strategy and modifiers
+ * ```ts
+ * import { reatomDnd, closestCenter, offsetModifier } from 'reatom-dnd';
+ *
+ * const dnd = reatomDnd({
+ *   name: 'grid',
+ *   intersectionStrategy: closestCenter,
+ *   modifiers: [offsetModifier({ x: 'center', y: 'center' })],
+ * });
+ * ```
+ *
+ * @example Creating draggable and droppable elements
+ * ```ts
+ * // Create a draggable item
+ * const taskModel = dnd.draggable({
+ *   id: 'task-1',
+ *   initialContext: { id: 'task-1', title: 'My Task' },
+ * });
+ *
+ * // Create a drop zone
+ * const columnModel = dnd.droppable({
+ *   id: 'column-todo',
+ *   initialContext: { columnId: 'todo' },
+ * });
+ *
+ * // Check drag state
+ * if (dnd.isDragging()) {
+ *   console.log('Currently dragging:', dnd.dragging()?.context());
+ * }
+ * ```
+ *
+ * @see {@link ReatomDndOptions} for configuration options
+ * @see {@link ReatomDnd} for the returned interface
+ * @see {@link DragModel} for draggable element structure
+ * @see {@link DropModel} for droppable zone structure
+ *
+ * @category Core
+ */
 export const reatomDnd = <DragContext, DropContext>({
   name,
   sensors = [mouseSensor()],

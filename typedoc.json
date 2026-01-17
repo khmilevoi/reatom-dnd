@@ -7,12 +7,12 @@
 		"**/node_modules/**",
 		"**/examples/**",
 		"**/dist/**",
-		"**/*.test.ts",
-		"**/utils/**"
+		"**/*.test.ts"
 	],
 	"excludePrivate": true,
 	"excludeProtected": true,
 	"excludeExternals": true,
+	"excludeInternal": true,
 	"readme": "README.md",
 	"name": "reatom-dnd",
 	"includeVersion": true,
@@ -20,6 +20,9 @@
 		"includeCategories": true,
 		"includeGroups": true
 	},
+	"categorizeByGroup": false,
+	"defaultCategory": "Other",
+	"categoryOrder": ["Core", "Types", "Models", "Strategies", "Modifiers", "Sensors", "Guards", "Callbacks", "React", "*"],
 	"sort": ["source-order"],
 	"kindSortOrder": [
 		"Function",
@@ -27,5 +30,9 @@
 		"Interface",
 		"Class",
 		"Variable"
-	]
+	],
+	"validation": {
+		"notExported": false,
+		"invalidLink": true
+	}
 }

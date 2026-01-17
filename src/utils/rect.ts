@@ -1,14 +1,52 @@
+/**
+ * Utility types and functions for managing positions and rectangles.
+ * @module utils/rect
+ */
+
 import { action, Atom, atom, isShallowEqual, peek } from '@reatom/core';
 
+/**
+ * Rectangle type representing bounding box dimensions.
+ * Same as DOMRect but without the toJSON method.
+ *
+ * @category Types
+ */
 export type Rect = Omit<DOMRect, 'toJSON'>;
-export type RectWithId = Rect & { id: string };
+
+/**
+ * Rectangle with an identifier, used for tracking element bounds.
+ *
+ * @category Types
+ */
+export type RectWithId = Rect & {
+  /** Unique identifier for the element this rect belongs to */
+  id: string;
+};
+
+/**
+ * Reactive state atom for a rectangle with update methods.
+ *
+ * @category Types
+ */
 export type RectState = ReturnType<typeof makeRect>;
 
+/**
+ * 2D position with x and y coordinates.
+ *
+ * @category Types
+ */
 export type Position = {
+  /** Horizontal position in pixels */
   x: number;
+  /** Vertical position in pixels */
   y: number;
 };
 
+/**
+ * Reactive state atom containing a Position.
+ *
+ * @category Types
+ */
 export type PositionState = Atom<Position>;
 
 export const makePosition = (name: string): PositionState => {

@@ -102,7 +102,7 @@ const DragOverlay = () => {
 
 ## Examples
 
-See the [examples](./examples) directory for a complete demo.
+See the [examples](https://github.com/khmilevoi/reatom-dnd/tree/main/examples) directory for a complete demo.
 
 Try it online: [StackBlitz](https://stackblitz.com/~/github.com/khmilevoi/reatom-dnd)
 
