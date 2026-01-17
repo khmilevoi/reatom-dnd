@@ -16,7 +16,9 @@
 			"import": "./dist/react.mjs"
 		}
 	},
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"sideEffects": false,
 	"scripts": {
 		"start": "pnpm --filter reatom-dnd-examples dev",
@@ -24,7 +26,10 @@
 		"prepublishOnly": "pnpm build",
 		"examples": "pnpm --filter reatom-dnd-examples dev",
 		"docs": "typedoc",
-		"docs:serve": "npx http-server docs -o"
+		"docs:serve": "npx http-server docs -o",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage"
 	},
 	"peerDependencies": {
 		"@reatom/core": ">=1000.0.0",
@@ -38,15 +43,21 @@
 	"devDependencies": {
 		"@reatom/core": "^1000.1.0",
 		"@types/react": "^19.0.0",
+		"@vitest/coverage-v8": "^4.0.17",
 		"react": "^19.0.0",
 		"tsdown": "0.20.0-beta.3",
 		"typedoc": "^0.27.5",
-		"typescript": "^5.9.3"
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.17"
 	},
 	"dependencies": {
 		"mitt": "^3.0.1"
 	},
-	"keywords": ["reatom", "dnd", "drag-and-drop"],
+	"keywords": [
+		"reatom",
+		"dnd",
+		"drag-and-drop"
+	],
 	"license": "MIT",
 	"author": "khmilevoi",
 	"repository": {
