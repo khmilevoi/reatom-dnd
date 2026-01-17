@@ -1,3 +1,3 @@
-// import { connectLogger } from "@reatom/core";
+import { connectLogger } from "@reatom/core";
 
-// connectLogger();
+connectLogger();
