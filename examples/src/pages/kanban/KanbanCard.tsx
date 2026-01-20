@@ -3,16 +3,18 @@ import { useDraggable } from 'reatom-dnd/react';
 import { GripVertical } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { cardsDnd, type Card, type CardContext } from './model';
+import { cardsDnd, type Card, type CardContext, type ColumnId } from './model';
 
 type KanbanCardProps = {
   card: Card;
+  columnId: ColumnId;
 };
 
-export const KanbanCard = reatomComponent<KanbanCardProps>(({ card }) => {
+export const KanbanCard = reatomComponent<KanbanCardProps>(({ card, columnId }) => {
   const context: CardContext = {
     id: card.id,
     title: card.title,
+    columnId,
   };
 
   const { setNodeRef, isActive } = useDraggable(cardsDnd, {
@@ -41,7 +43,7 @@ export const KanbanCard = reatomComponent<KanbanCardProps>(({ card }) => {
 }, 'KanbanCard');
 
 // Card content for overlay (without drag functionality)
-export const KanbanCardContent = ({ card }: KanbanCardProps) => (
+export const KanbanCardContent = ({ card }: { card: Card }) => (
   <div className="flex cursor-grabbing select-none items-center gap-2 rounded-lg border bg-card p-3 shadow-xl ring-2 ring-primary">
     <GripVertical size={16} className="shrink-0 text-muted-foreground" />
     <span className="text-sm font-medium">{card.title}</span>

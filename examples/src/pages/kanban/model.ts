@@ -1,4 +1,11 @@
-import { atom, action, computed } from '@reatom/core';
+import {
+  atom,
+  action,
+  Atom,
+  reatomLinkedList,
+  type LLNode,
+  LL_PREV,
+} from '@reatom/core';
 import {
   reatomDnd,
   rectangleIntersection,
@@ -9,21 +16,27 @@ import {
 
 // Types
 export type ColumnId = string;
+export type CardId = string;
 
 export type Card = {
-  id: string;
+  id: CardId;
   title: string;
-  columnId: ColumnId;
 };
 
+// Column type (without index - order is determined by linked list)
 export type Column = {
   id: ColumnId;
   title: string;
+  cards: Atom<Card[]>;
 };
 
+// Linked list node type
+export type ColumnNode = LLNode<Column>;
+
 export type CardContext = {
-  id: string;
+  id: CardId;
   title: string;
+  columnId: ColumnId;
 };
 
 export type ColumnContext = {
@@ -31,71 +44,103 @@ export type ColumnContext = {
   title: string;
 };
 
-// Initial data
-const initialColumns: Column[] = [
-  { id: 'todo', title: 'To Do' },
-  { id: 'in-progress', title: 'In Progress' },
-  { id: 'done', title: 'Done' },
+// Context for column drop zones - reference to column AFTER which to insert
+export type ColumnDropZoneContext = {
+  afterColumn: ColumnNode | null; // null = insert at the beginning
+};
+
+// Initial cards data
+const todoCards: Card[] = [
+  { id: 'card-1', title: 'Design system components' },
+  { id: 'card-2', title: 'API integration' },
 ];
 
-const initialCards: Card[] = [
-  { id: 'card-1', title: 'Design system components', columnId: 'todo' },
-  { id: 'card-2', title: 'API integration', columnId: 'todo' },
-  { id: 'card-3', title: 'User authentication', columnId: 'in-progress' },
-  { id: 'card-4', title: 'Database schema', columnId: 'in-progress' },
-  { id: 'card-5', title: 'Project setup', columnId: 'done' },
+const inProgressCards: Card[] = [
+  { id: 'card-3', title: 'User authentication' },
+  { id: 'card-4', title: 'Database schema' },
 ];
 
-// State atoms
-export const columnsAtom = atom<Column[]>(initialColumns, 'kanban.columns');
-export const cardsAtom = atom<Card[]>(initialCards, 'kanban.cards');
-export const columnOrderAtom = atom<ColumnId[]>(
-  initialColumns.map((c) => c.id),
-  'kanban.columnOrder',
+const doneCards: Card[] = [{ id: 'card-5', title: 'Project setup' }];
+
+// Linked list of columns
+export const columnsLL = reatomLinkedList(
+  {
+    create: (id: ColumnId, title: string, cards: Card[]) => ({
+      id,
+      title,
+      cards: atom(cards, `kanban.column.${id}.cards`),
+    }),
+    initState: [
+      {
+        id: 'todo',
+        title: 'To Do',
+        cards: atom(todoCards, 'kanban.column.todo.cards'),
+      },
+      {
+        id: 'in-progress',
+        title: 'In Progress',
+        cards: atom(inProgressCards, 'kanban.column.in-progress.cards'),
+      },
+      {
+        id: 'done',
+        title: 'Done',
+        cards: atom(doneCards, 'kanban.column.done.cards'),
+      },
+    ],
+    key: 'id' as const,
+  },
+  'kanban.columns',
 );
+
+// Get column by id - O(1) via map
+export const getColumn = (id: ColumnId): ColumnNode | undefined =>
+  columnsLL.map().get(id);
 
 // Actions
-export const moveCard = action((cardId: string, targetColumnId: ColumnId) => {
-  const cards = cardsAtom();
-  const updatedCards = cards.map((card) =>
-    card.id === cardId ? { ...card, columnId: targetColumnId } : card,
-  );
-  cardsAtom.set(updatedCards);
-}, 'kanban.moveCard');
 
-export const reorderColumns = action(
-  (draggedColumnId: ColumnId, targetColumnId: ColumnId) => {
-    if (draggedColumnId === targetColumnId) return;
+// Move card between columns
+export const moveCard = action(
+  (cardId: CardId, fromColumnId: ColumnId, toColumnId: ColumnId) => {
+    if (fromColumnId === toColumnId) return;
 
-    const order = columnOrderAtom();
-    const draggedIndex = order.indexOf(draggedColumnId);
-    const targetIndex = order.indexOf(targetColumnId);
+    const fromColumn = getColumn(fromColumnId);
+    const toColumn = getColumn(toColumnId);
 
-    if (draggedIndex === -1 || targetIndex === -1) return;
+    if (!fromColumn || !toColumn) return;
 
-    const newOrder = [...order];
-    newOrder.splice(draggedIndex, 1);
-    newOrder.splice(targetIndex, 0, draggedColumnId);
+    const fromCards = fromColumn.cards();
+    const cardIndex = fromCards.findIndex((c) => c.id === cardId);
 
-    columnOrderAtom.set(newOrder);
+    if (cardIndex === -1) return;
+
+    const [card] = fromCards.splice(cardIndex, 1);
+
+    // O(1) - directly update the atoms
+    fromColumn.cards.set([...fromCards]);
+    toColumn.cards.set([...toColumn.cards(), card]);
   },
-  'kanban.reorderColumns',
+  'kanban.moveCard',
 );
 
-// Derived atoms
-export const getCardsByColumn = (columnId: ColumnId) =>
-  computed(
-    () => cardsAtom().filter((card) => card.columnId === columnId),
-    `kanban.cardsByColumn.${columnId}`,
-  );
+// Move column with View Transitions animation
+export const moveColumn = action(
+  (column: ColumnNode, afterColumn: ColumnNode | null) => {
+    // Skip if column would be moved to its current position
+    // (afterColumn is the previous sibling or column itself)
+    const prevSibling = column[LL_PREV];
+    if (afterColumn === column || afterColumn === prevSibling) return;
 
-export const orderedColumnsAtom = computed(() => {
-  const columns = columnsAtom();
-  const order = columnOrderAtom();
-  return order
-    .map((id) => columns.find((col) => col.id === id))
-    .filter((col): col is Column => col !== undefined);
-}, 'kanban.orderedColumns');
+    // Use View Transitions API for animation
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        columnsLL.move(column, afterColumn);
+      });
+    } else {
+      columnsLL.move(column, afterColumn);
+    }
+  },
+  'kanban.moveColumn',
+);
 
 // DnD Models
 
@@ -103,20 +148,25 @@ export const orderedColumnsAtom = computed(() => {
 export const cardsDnd = reatomDnd<CardContext, ColumnId>({
   name: 'cardsDnd',
   sensors: [mouseSensor()],
-  modifiers: [offsetModifier({ x: 'center', y: 'center' })],
+  modifiers: [offsetModifier({ x: -25, y: 'center' })],
   intersectionStrategy: rectangleIntersection,
   onDrop: (card, targetColumnId) => {
-    moveCard(card.id, targetColumnId);
+    moveCard(card.id, card.columnId, targetColumnId);
   },
 });
 
 // Model for columns - reorder columns
-export const columnsDnd = reatomDnd<ColumnContext, ColumnId>({
+export const columnsDnd = reatomDnd<ColumnContext, ColumnDropZoneContext>({
   name: 'columnsDnd',
   sensors: [mouseSensor()],
-  modifiers: [offsetModifier({ x: 'center', y: 'center' })],
+  modifiers: [offsetModifier({ x: -25, y: 'center' })],
   intersectionStrategy: closestCenter,
-  onDrop: (draggedColumn, targetColumnId) => {
-    reorderColumns(draggedColumn.id, targetColumnId);
+  // Move on hover, not on drop
+  onDropEnter: (dragColumn, dropContext) => {
+    const column = getColumn(dragColumn.id);
+    if (column) {
+      moveColumn(column, dropContext.afterColumn);
+    }
   },
+  // onDrop not needed - state is already updated
 });

@@ -15,7 +15,7 @@ import {
   useState,
 } from 'react';
 
-import { Atom, log } from '@reatom/core';
+import { Atom, AtomLike, log } from '@reatom/core';
 
 import { PRIVATE_META, ReatomDnd } from './types.ts';
 import { DragCallbacks, DropCallbacks } from './utils';
@@ -296,7 +296,7 @@ export const useDroppable = <DragContext, DropContext>(
     id: string;
     context: DropContext;
     isDisabled?: boolean;
-    node?: Atom<HTMLElement | null>;
+    node?: AtomLike<HTMLElement | null>;
   } & Partial<DropCallbacks<DragContext, DropContext>>,
 ) => {
   const [nodeRef, setNodeRef] = useNodeRef();

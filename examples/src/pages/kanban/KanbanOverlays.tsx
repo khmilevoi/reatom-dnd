@@ -1,7 +1,7 @@
 import { reatomComponent } from '@reatom/react';
 import { useOverlay } from 'reatom-dnd/react';
 
-import { cardsDnd, columnsDnd, cardsAtom, columnsAtom } from './model';
+import { cardsDnd, columnsDnd, getColumn } from './model';
 import { KanbanCardContent } from './KanbanCard';
 import { KanbanColumnContent } from './KanbanColumn';
 
@@ -24,16 +24,12 @@ const CardOverlayContent = reatomComponent(() => {
 
 const CardOverlayInner = reatomComponent(() => {
   const draggingModel = cardsDnd.dragging();
-  const cards = cardsAtom();
 
   if (!draggingModel) return null;
 
-  const cardId = draggingModel.context().id;
-  const card = cards.find((c) => c.id === cardId);
+  const { id, title } = draggingModel.context();
 
-  if (!card) return null;
-
-  return <KanbanCardContent card={card} />;
+  return <KanbanCardContent card={{ id, title }} />;
 }, 'CardOverlayInner');
 
 export const CardOverlay = reatomComponent(() => {
@@ -63,12 +59,11 @@ const ColumnOverlayContent = reatomComponent(() => {
 
 const ColumnOverlayInner = reatomComponent(() => {
   const draggingModel = columnsDnd.dragging();
-  const columns = columnsAtom();
 
   if (!draggingModel) return null;
 
   const columnId = draggingModel.context().id;
-  const column = columns.find((c) => c.id === columnId);
+  const column = getColumn(columnId);
 
   if (!column) return null;
 

@@ -1,0 +1,13 @@
+/* Kanban Board Styles */
+
+/* View Transitions API animations for column reordering */
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 200ms;
+  animation-timing-function: ease-out;
+}
+
+/* Ensure view transition layer doesn't overlap drag overlay */
+::view-transition-group(*) {
+  z-index: 1;
+}
