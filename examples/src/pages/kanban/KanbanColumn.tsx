@@ -93,7 +93,7 @@ export const KanbanColumn = reatomComponent<KanbanColumnProps>(({ column }) => {
 
 // Compact column overlay - shows only title and card count
 export const KanbanColumnContent = ({ column }: KanbanColumnProps) => (
-  <div className="flex select-none items-center gap-2 rounded-lg border bg-muted/80 px-4 py-2 shadow-xl ring-2 ring-primary">
+  <div className="flex select-none items-center gap-2 rounded-lg border bg-muted px-4 py-2 shadow-xl ring-2 ring-primary">
     <GripHorizontal size={16} className="shrink-0 text-muted-foreground" />
     <span className="font-semibold">{column.title}</span>
     <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">

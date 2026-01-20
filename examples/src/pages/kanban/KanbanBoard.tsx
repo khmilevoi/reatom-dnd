@@ -34,6 +34,10 @@ export const KanbanBoard = reatomComponent(() => {
 
   return (
     <div className="flex h-full flex-col bg-background p-6">
+      {/* Overlays */}
+      <CardOverlay />
+      <ColumnOverlay />
+
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Kanban Board</h1>
@@ -53,10 +57,6 @@ export const KanbanBoard = reatomComponent(() => {
           <ColumnDropZone key={`drop-${column.id}`} afterColumn={column} />,
         ])}
       </div>
-
-      {/* Overlays */}
-      <CardOverlay />
-      <ColumnOverlay />
     </div>
   );
 }, 'KanbanBoard');
